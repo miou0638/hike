@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <title>健走大高雄 - 每日登山小知識</title>
+  <style>
+    body {
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh; background-color: #f0f2f5; margin: 0;
+      font-family: 'PingFang TC', 'Helvetica Neue', '微軟正黑體', sans-serif;
+    }
+    .app-container {
+      width: 100%; max-width: 400px; height: 100vh; max-height: 850px; /* 適應大螢幕手機 */
+      background-color: #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column; justify-content: flex-start;
+      background-size: cover; background-position: center;
+      position: relative; transition: background-image 0.8s ease-in-out;
+    }
+    /* 在大螢幕上顯示圓角 */
+    @media (min-height: 850px) { .app-container { border-radius: 20px; height: 800px; } }
+
+    .app-header {
+      text-align: center; padding: 18px 15px; font-size: 18px;
+      font-weight: bold; color: #333; background-color: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    
+    .date-picker-wrapper { text-align: center; margin-top: 25px; z-index: 10; }
+    input[type="date"] {
+      background-color: rgba(255, 255, 255, 0.9); border: none; 
+      padding: 10px 20px; border-radius: 25px;
+      font-family: inherit; font-size: 15px; font-weight: bold; color: #2e7d32;
+      outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      cursor: pointer; backdrop-filter: blur(5px);
+    }
+    
+    .date-display {
+      display: flex; flex-direction: column; align-items: center; 
+      padding: 15px 0 25px 0; color: white;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.3);
+    }
+    .date-display h1 { margin: 0; font-size: 90px; line-height: 1; font-weight: 900; }
+    .date-display p { margin: 10px 0 0; font-size: 20px; font-weight: bold; letter-spacing: 2px;}
+    
+    .card-container {
+      margin: 0 20px 30px 20px; padding: 25px; 
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+      backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    }
+    .category-badge {
+      display: inline-block; background-color: #e8f5e9; color: #2e7d32;
+      padding: 6px 14px; border-radius: 12px; font-size: 14px; font-weight: bold; margin-bottom: 12px;
+    }
+    .title { margin: 0 0 12px; font-size: 22px; color: #1a1a1a; font-weight: 800; line-height: 1.3; }
+    .content { font-size: 16px; color: #4a4a4a; line-height: 1.7; margin: 0; text-align: justify; }
+  </style>
+</head>
+<body>
+
+<div class="app-container" id="app-bg">
+  <div class="app-header">每日登山小知識</div>
+  
+  <div class="date-picker-wrapper">
+    <input type="date" id="calendar-input">
+  </div>
+  
+  <div class="date-display">
+    <h1 id="day-text">--</h1>
+    <p id="month-text">--月 星期--</p>
+  </div>
+  
+  <div class="card-container">
+    <div class="category-badge" id="category-text">--</div>
+    <h2 class="title" id="title-text">--</h2>
+    <p class="content" id="content-text">--</p>
+  </div>
+</div>
+
+<script>
+  // 高畫質大自然背景圖庫
+  const backgrounds = [
+    'https://images.unsplash.com/photo-1448375240586-882707db888b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1501555088652-021faa106b9b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1426604966848-d7adac402bff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1472396961693-142e6e269027?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1438786657495-640937046d18?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+  ];
+
+  // 登山小常識資料庫
+  const database = [
+    { category: "裝備", title: "洋蔥式穿搭法", content: "登山時千萬別穿厚重單件外套！內層穿著吸濕排汗衣，中層保暖，外層防風防雨。行進間覺得熱就脫掉中外層，休息時立刻穿上，靈活調節體溫避免失溫。" },
+    { category: "水分", title: "少量多次飲水", content: "覺得口渴時，身體通常已經處於缺水狀態了。健走時請掌握「定時定量、小口慢飲」的原則，避免一次牛飲造成胃部負擔或加速流汗流失。" },
+    { category: "飲食", title: "行進糧的聰明選擇", content: "健走會消耗大量熱量，建議隨身攜帶堅果、巧克力、鹽糖或羊羹等「高熱量、體積小」的行進糧，隨時補充能量與流失的電解質。" },
+    { category: "安全", title: "建立留守人制度", content: "即使是郊山健走，出發前也請將「行程路線」與「預計下山時間」告知親友。若發生意外，留守人能第一時間察覺異狀並協助報案。" },
+    { category: "裝備", title: "登山杖的高低學問", content: "登山杖能有效減輕膝蓋 20% 的負擔！原則是：上坡時調短，方便施力將身體向上撐；下坡時調長，以利提前觸地支撐身體重量。" },
+    { category: "體能", title: "找到專屬的呼吸節奏", content: "覺得喘不過氣嗎？試著讓呼吸配合步伐，例如「兩步一吸、兩步一呼」。保持規律的節奏，能讓氧氣更有效率地輸送到全身肌肉。" },
+    { category: "氣候", title: "南台灣防曬與防中暑", content: "高雄陽光熱情，除了塗抹防曬乳，務必配戴寬沿遮陽帽與太陽眼鏡。若感到頭暈、噁心，請立刻至陰涼處休息並補充電解質，嚴防熱衰竭。" }
+  ];
+
+  function changeBackground() {
+    const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+    document.getElementById('app-bg').style.backgroundImage = `url('${randomBg}')`;
+  }
+
+  function updateDisplay(targetDate) {
+    const date = targetDate.getDate();
+    const month = targetDate.getMonth() + 1;
+    const days = ['日', '一', '二', '三', '四', '五', '六'];
+    const dayOfWeek = days[targetDate.getDay()];
+
+    document.getElementById('day-text').innerText = date;
+    document.getElementById('month-text').innerText = `${month}月 星期${dayOfWeek}`;
+
+    const start = new Date(targetDate.getFullYear(), 0, 0);
+    const diff = targetDate - start;
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    
+    const data = database[dayOfYear % database.length];
+    document.getElementById('category-text').innerText = data.category;
+    document.getElementById('title-text').innerText = data.title;
+    document.getElementById('content-text').innerText = data.content;
+  }
+
+  window.onload = () => {
+    changeBackground();
+    const today = new Date();
+    const dateInput = document.getElementById('calendar-input');
+    
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    dateInput.value = `${yyyy}-${mm}-${dd}`;
+    
+    updateDisplay(today);
+  };
+
+  document.getElementById('calendar-input').addEventListener('change', function(e) {
+    if(this.value) {
+      const selectedDate = new Date(this.value);
+      updateDisplay(selectedDate);
+      changeBackground();
+    }
+  });
+</script>
+
+</body>
+</html>
